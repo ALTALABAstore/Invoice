@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الفواتير - مكتبة الطلبة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a3a5f 0%, #2c5c8a 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .header-content {
+            flex: 1;
+        }
+        
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .phone-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* تنسيق الأزرار العلوية الجديدة */
+        .header-type-selection {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-type-toggle {
+            padding: 10px 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-type-toggle.active {
+            background: white;
+            color: #1a3a5f;
+            border-color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .app-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .input-section {
+            flex: 1;
+            min-width: 320px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .preview-section {
+            flex: 1;
+            min-width: 320px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            color: #1a3a5f;
+            font-size: 22px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1a3a5f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #444;
+            font-size: 15px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1a3a5f;
+            box-shadow: 0 0 0 2px rgba(26, 58, 95, 0.1);
+        }
+        
+        .product-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            position: relative;
+            align-items: center;
+        }
+        
+        .product-name {
+            flex: 3;
+            position: relative;
+        }
+        
+        .product-qty, .product-price {
+            flex: 1;
+        }
+        
+        .btn {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1a3a5f 0%, #2c5c8a 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #ff6b6b 100%);
+            color: white;
+        }
+        
+        .btn-print {
+            background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+            color: white;
+        }
+
+        .btn-delivery {
+            background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+            color: white;
+        }
+        
+        .buttons-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .autocomplete {
+            position: relative;
+        }
+        
+        .autocomplete-list {
+            position: absolute;
+            z-index: 1000;
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f5f5;
+            text-align: right;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .autocomplete-item:hover {
+            background: #f0f7ff;
+        }
+        
+        .product-name-in-list {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .product-price-in-list {
+            color: #1a3a5f;
+            font-weight: bold;
+            background: #e8f0ff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .no-results {
+            padding: 15px;
+            text-align: center;
+            color: #777;
+            font-style: italic;
+        }
+        
+        .invoice-preview {
+            flex: 1;
+            overflow: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+            margin-top: 10px;
+        }
+        
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a3a5f;
+        }
+        
+        .invoice-title {
+            font-size: 28px;
+            color: #1a3a5f;
+            margin-bottom: 5px;
+        }
+        
+        .company-name {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .client-info, .invoice-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            width: 100px;
+            color: #1a3a5f;
+        }
+        
+        .invoice-id {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .invoice-table th {
+            background: #1a3a5f;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .invoice-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .invoice-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .invoice-total {
+            text-align: left;
+            margin-top: 25px;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            border-top: 3px solid #1a3a5f;
+        }
+        
+        .total-label {
+            font-weight: bold;
+            color: #1a3a5f;
+            font-size: 18px;
+        }
+        
+        .total-amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1a3a5f;
+            margin-top: 5px;
+        }
+        
+        .invoice-footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .preview-section, .preview-section * {
+                visibility: visible;
+            }
+            
+            .preview-section {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                padding: 30px;
+                border: none;
+                box-shadow: none;
+                margin: 0;
+            }
+            
+            .buttons-container {
+                display: none !important;
+            }
+            
+            .invoice-preview {
+                border: none;
+                padding: 0;
+                background: white;
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* تنسيق إضافي لحقل العنوان */
+        #addressFieldContainer {
+            transition: 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1><i class="fas fa-book-open"></i> نظام إدارة الفواتير - مكتبة الطلبة</h1>
+                <div class="contact-info">
+                    <div class="phone-box">
+                        <i class="fas fa-phone"></i>
+                        <span>01097670474</span>
+                    </div>
+                    <div class="header-type-selection">
+                        <button id="btnSaleType" class="btn-type-toggle active" onclick="switchInvoiceType('sale')">
+                            <i class="fas fa-shopping-cart"></i> فاتورة مبيعات
+                        </button>
+                        <button id="btnDeliveryType" class="btn-type-toggle" onclick="switchInvoiceType('delivery')">
+                            <i class="fas fa-motorcycle"></i> فاتورة دليفري
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="app-container">
+            <section class="input-section">
+                <h2 class="section-title"><i class="fas fa-edit"></i> إدخال بيانات الفاتورة</h2>
+                
+                <div class="form-group">
+                    <label for="clientName"><i class="fas fa-user"></i> اسم العميل</label>
+                    <input type="text" id="clientName" placeholder="أدخل اسم العميل">
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientPhone"><i class="fas fa-phone"></i> رقم الهاتف</label>
+                    <input type="text" id="clientPhone" placeholder="رقم هاتف العميل">
+                </div>
+
+                <div class="form-group" id="addressFieldContainer" style="display: none;">
+                    <label for="clientAddress"><i class="fas fa-map-marker-alt"></i> عنوان التوصيل</label>
+                    <input type="text" id="clientAddress" placeholder="أدخل العنوان بالتفصيل">
+                </div>
+
+                <div class="form-group" id="deliveryPriceContainer" style="display: none;">
+                    <label for="deliveryPrice"><i class="fas fa-money-bill-wave"></i> تكلفة التوصيل</label>
+                    <input type="number" id="deliveryPrice" placeholder="أدخل مبلغ التوصيل" value="0" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="invoiceDate"><i class="fas fa-calendar"></i> تاريخ الفاتورة</label>
+                    <input type="date" id="invoiceDate">
+                </div>
+                
+                <h3 class="section-title"><i class="fas fa-boxes"></i> إضافة المنتجات</h3>
+                <div id="productsContainer">
+                    <div class="product-row">
+                        <div class="product-name autocomplete">
+                            <input type="text" class="product-name-input" placeholder="اكتب حرف أو حرفين للبحث">
+                            <div class="autocomplete-list"></div>
+                        </div>
+                        <input type="number" class="product-qty" placeholder="الكمية" value="1" min="1">
+                        <input type="number" class="product-price" placeholder="السعر" value="0" min="0" step="0.01">
+                        <button class="btn btn-danger" onclick="removeProduct(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="buttons-container">
+                    <button class="btn btn-primary" onclick="addProduct()">
+                        <i class="fas fa-plus-circle"></i> إضافة منتج
+                    </button>
+                    <button class="btn btn-success" onclick="generateInvoice()">
+                        <i class="fas fa-file-invoice"></i> إنشاء الفاتورة
+                    </button>
+                    <button class="btn btn-danger" onclick="clearForm()">
+                        <i class="fas fa-broom"></i> مسح الكل
+                    </button>
+                </div>
+            </section>
+            
+            <section class="preview-section">
+                <h2 class="section-title"><i class="fas fa-eye"></i> معاينة الفاتورة</h2>
+                
+                <div class="invoice-preview" id="invoicePreview">
+                    <div class="invoice-header">
+                        <h2 class="invoice-title" id="previewTitle">فاتورة مبيعات</h2>
+                        <p class="company-name">مكتبة الطلبة - أدوات ومستلزمات تعليمية</p>
+                    </div>
+                    
+                    <div class="invoice-details">
+                        <div class="client-info">
+                            <div class="info-row">
+                                <span class="info-label">العميل:</span>
+                                <span id="previewClientName">لم يتم التحديد</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">الهاتف:</span>
+                                <span id="previewClientPhone">-</span>
+                            </div>
+                            <div class="info-row" id="previewAddressRow" style="display: none;">
+                                <span class="info-label">العنوان:</span>
+                                <span id="previewClientAddress">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="invoice-info">
+                            <div class="info-row">
+                                <span class="info-label">رقم الفاتورة:</span>
+                                <span class="invoice-id" id="previewInvoiceId">INV-001</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">التاريخ:</span>
+                                <span id="previewInvoiceDate">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>اسم المنتج</th>
+                                <th>الكمية</th>
+                                <th>سعر الوحدة</th>
+                                <th>المجموع</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewProducts">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 30px;">
+                                    لم تتم إضافة منتجات بعد
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="invoice-total">
+                        <div class="total-label">المجموع الإجمالي:</div>
+                        <div class="total-amount" id="previewTotal">0.00 ج.م</div>
+                    </div>
+                    
+                    <div class="invoice-footer">
+                        <p>شكراً لتعاملك مع مكتبة الطلبة</p>
+                        <p>للاستفسارات: 01097670474 | جميع الحقوق محفوظة © 2026</p>
+                    </div>
+                </div>
+                
+                <div class="buttons-container">
+                    <button class="btn btn-print" onclick="printInvoice()">
+                        <i class="fas fa-print"></i> طباعة الفاتورة
+                    </button>
+                    <button class="btn btn-success" onclick="saveAsPDF()">
+                        <i class="fas fa-file-pdf"></i> حفظ كـ PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="generateInvoice()">
+                        <i class="fas fa-sync-alt"></i> تحديث المعاينة
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText"></span>
+    </div>
+
+    <script>
+        let currentType = 'sale'; // النوع الافتراضي
+
+        const allProducts = [
+            {name: " قلم جاف روتو", price: 5},
+            {name: "قلم جاف بينسان تركى شفاف", price: 10},
+            {name: " قلم جاف بينسان تركى تريبل ", price: 10},
+            {name: "قلم رصاص HB", price: 1.50},
+            {name: "قلم رصاص 2B", price: 2.00},
+            {name: "قلم فلوماستر أسود", price: 4.00},
+            {name: "قلم فلوماستر أزرق", price: 4.00},
+            {name: "قلم فلوماستر أحمر", price: 4.00},
+            {name: "قلم تحديد", price: 5.00},
+            {name: "قلم جاف فاخر", price: 25.00},
+            {name: "دفتر 80 ورقة", price: 8.00},
+            {name: "دفتر 100 ورقة", price: 10.00},
+            {name: "دفتر رسم", price: 15.00},
+            {name: "دفتر ملاحظات صغير", price: 5.00},
+            {name: "ممحاة بيضاء", price: 1.00},
+            {name: "براية صغيرة", price: 3.00},
+            {name: "براية كهربائية", price: 25.00},
+            {name: "مسطرة 30 سم", price: 3.50},
+            {name: "مسطرة 50 سم", price: 6.00},
+            {name: "منقلة", price: 4.00},
+            {name: "مثلث هندسي", price: 5.00},
+            {name: "فرجار هندسي", price: 12.00},
+            {name: "مقص مكتبي", price: 12.00},
+            {name: "دباسة صغيرة", price: 15.00},
+            {name: "دبابيس دباسة", price: 5.00},
+            {name: "قاموس عربي إنجليزي", price: 45.00},
+            {name: "قاموس إنجليزي عربي", price: 45.00},
+            {name: "قاموس المورد", price: 60.00},
+            {name: "قاموس الرياضيات", price: 35.00},
+            {name: "قاموس العلوم", price: 35.00},
+            {name: "قاموس النحو", price: 30.00},
+            {name: "قاموس الصرف", price: 30.00},
+            {name: "كتاب قواعد اللغة", price: 40.00},
+            {name: "كتاب البلاغة", price: 40.00},
+            {name: "كتاب الأدب", price: 45.00},
+            {name: "حقيبة مدرسية", price: 120.00},
+            {name: "حافظة أقلام", price: 15.00},
+            {name: "حافظة وثائق", price: 20.00},
+            {name: "طابعة ألوان", price: 850.00},
+            {name: "حبر طابعة أسود", price: 80.00},
+            {name: "ورق طباعة A4", price: 25.00},
+            {name: "ورق طباعة ملون", price: 35.00},
+        ];
+
+        // دالة التبديل بين الأنواع
+        function switchInvoiceType(type) {
+            currentType = type;
+            const btnSale = document.getElementById('btnSaleType');
+            const btnDelivery = document.getElementById('btnDeliveryType');
+            const addressField = document.getElementById('addressFieldContainer');
+            const deliveryPriceField = document.getElementById('deliveryPriceContainer'); // الخانة الجديدة
+            const previewTitle = document.getElementById('previewTitle');
+            const previewAddressRow = document.getElementById('previewAddressRow');
+
+            if (type === 'sale') {
+                btnSale.classList.add('active');
+                btnDelivery.classList.remove('active');
+                addressField.style.display = 'none';
+                deliveryPriceField.style.display = 'none'; // إخفاء السعر
+                previewTitle.textContent = "فاتورة مبيعات";
+                previewAddressRow.style.display = 'none';
+                showNotification('تم التحويل لنمط المبيعات المباشرة');
+            } else {
+                btnDelivery.classList.add('active');
+                btnSale.classList.remove('active');
+                addressField.style.display = 'block';
+                deliveryPriceField.style.display = 'block'; // إظهار السعر
+                previewTitle.textContent = "فاتورة شحن دليفري";
+                showNotification('تم التحويل لنمط الدليفري');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const text = document.getElementById('notificationText');
+            text.textContent = message;
+            notification.style.background = type === 'success' ? 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)' : 'linear-gradient(135deg, #e74c3c 0%, #ff6b6b 100%)';
+            notification.style.display = 'flex';
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        function searchProducts(keyword) {
+            if (!keyword || keyword.trim() === '') return [];
+            const search = keyword.trim().toLowerCase();
+            return allProducts.filter(product => product.name.toLowerCase().includes(search));
+        }
+
+        function showSuggestions(inputElement) {
+            const searchText = inputElement.value;
+            const suggestionsContainer = inputElement.nextElementSibling;
+            if (searchText.length < 1) { suggestionsContainer.style.display = 'none'; return; }
+            const products = searchProducts(searchText);
+            if (products.length === 0) {
+                suggestionsContainer.innerHTML = '<div class="no-results">لا توجد منتجات تطابق بحثك</div>';
+                suggestionsContainer.style.display = 'block';
+                return;
+            }
+            let html = '';
+            products.forEach(product => {
+                html += `<div class="autocomplete-item" onclick="selectProduct(this, '${product.name.replace(/'/g, "\\'")}', ${product.price})">
+                    <div class="product-name-in-list">${product.name}</div>
+                    <div class="product-price-in-list">${product.price.toFixed(2)} ج.م</div>
+                </div>`;
+            });
+            suggestionsContainer.innerHTML = html;
+            suggestionsContainer.style.display = 'block';
+        }
+
+        function selectProduct(element, productName, productPrice) {
+            const inputElement = element.parentElement.previousElementSibling;
+            inputElement.value = productName;
+            const productRow = inputElement.closest('.product-row');
+            productRow.querySelector('.product-price').value = productPrice;
+            element.parentElement.style.display = 'none';
+            const qtyInput = productRow.querySelector('.product-qty');
+            setTimeout(() => { qtyInput.focus(); qtyInput.select(); }, 50);
+        }
+
+        document.addEventListener('input', (e) => {
+            if(e.target.classList.contains('product-name-input')) showSuggestions(e.target);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.autocomplete')) {
+                document.querySelectorAll('.autocomplete-list').forEach(list => list.style.display = 'none');
+            }
+        });
+
+        function addProduct() {
+            const container = document.getElementById('productsContainer');
+            const productRow = document.createElement('div');
+            productRow.className = 'product-row';
+            productRow.innerHTML = `
+                <div class="product-name autocomplete">
+                    <input type="text" class="product-name-input" placeholder="اكتب حرف أو حرفين للبحث">
+                    <div class="autocomplete-list"></div>
+                </div>
+                <input type="number" class="product-qty" placeholder="الكمية" value="1" min="1">
+                <input type="number" class="product-price" placeholder="السعر" value="0" min="0" step="0.01">
+                <button class="btn btn-danger" onclick="removeProduct(this)"><i class="fas fa-trash"></i></button>`;
+            container.appendChild(productRow);
+            productRow.querySelector('.product-name-input').focus();
+        }
+
+        function removeProduct(button) {
+            const container = document.getElementById('productsContainer');
+            if (container.children.length > 1) button.parentElement.remove();
+            else showNotification('يجب أن تبقى منتج واحد على الأقل', 'error');
+        }
+
+        function generateInvoiceId() {
+            const date = new Date();
+            return `INV-${date.getFullYear().toString().substr(-2)}${(date.getMonth() + 1).toString().padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+        }
+
+        function clearForm() {
+            if(confirm("هل أنت متأكد من مسح جميع البيانات؟")) location.reload();
+        }
+
+        function generateInvoice() {
+            const clientName = document.getElementById('clientName').value.trim();
+            const clientPhone = document.getElementById('clientPhone').value.trim();
+            const clientAddress = document.getElementById('clientAddress').value.trim();
+            let invoiceDate = document.getElementById('invoiceDate').value;
+
+            if (!clientName) {
+                showNotification('يرجى إدخال اسم العميل', 'error');
+                document.getElementById('clientName').focus();
+                return;
+            }
+
+            if (currentType === 'delivery' && !clientAddress) {
+                showNotification('يرجى إدخال العنوان للدليفري', 'error');
+                document.getElementById('clientAddress').focus();
+                return;
+            }
+
+            // تحديث المعاينة بناءً على النوع المختار
+            document.getElementById('previewTitle').textContent = currentType === 'delivery' ? "فاتورة شحن دليفري" : "فاتورة مبيعات";
+            document.getElementById('previewClientName').textContent = clientName;
+            document.getElementById('previewClientPhone').textContent = clientPhone || '-';
+            
+            const addressRow = document.getElementById('previewAddressRow');
+            if (currentType === 'delivery') {
+                addressRow.style.display = 'flex';
+                document.getElementById('previewClientAddress').textContent = clientAddress;
+            } else {
+                addressRow.style.display = 'none';
+            }
+
+            if (!invoiceDate) {
+                invoiceDate = new Date().toISOString().split('T')[0];
+                document.getElementById('invoiceDate').value = invoiceDate;
+            }
+            document.getElementById('previewInvoiceDate').textContent = new Date(invoiceDate).toLocaleDateString('ar-EG');
+            document.getElementById('previewInvoiceId').textContent = generateInvoiceId();
+
+            const productRows = document.querySelectorAll('.product-row');
+            const previewTable = document.getElementById('previewProducts');
+            let tableHTML = '';
+            let total = 0;
+    let count = 0;
+
+    // حساب إجمالي المنتجات
+    productRows.forEach((row) => {
+        const name = row.querySelector('.product-name-input').value.trim();
+        const qty = parseFloat(row.querySelector('.product-qty').value) || 0;
+        const price = parseFloat(row.querySelector('.product-price').value) || 0;
+        if (name && qty > 0) {
+            count++;
+            const rowTotal = qty * price;
+            total += rowTotal;
+            tableHTML += `<tr><td>${count}</td><td>${name}</td><td>${qty}</td><td>${price.toFixed(2)}</td><td>${rowTotal.toFixed(2)}</td></tr>`;
+        }
+    });
+
+    // إضافة سعر التوصيل لو النمط دليفري
+    let shipping = 0;
+    if (currentType === 'delivery') {
+        shipping = parseFloat(document.getElementById('deliveryPrice').value) || 0;
+        if (shipping > 0) {
+            tableHTML += `<tr style="font-weight:bold; background:#fff5eb;">
+                <td colspan="4" style="text-align:left;">تكلفة التوصيل</td>
+                <td>${shipping.toFixed(2)}</td>
+            </tr>`;
+        }
+    }
+
+    const finalTotal = total + shipping; // الإجمالي النهائي
+
+    if (count === 0) {
+        showNotification('يرجى إضافة منتجات أولاً', 'error');
+        return;
+    }
+
+    previewTable.innerHTML = tableHTML;
+    document.getElementById('previewTotal').textContent = `${finalTotal.toFixed(2)} ج.م`;
+    showNotification('تم تحديث الفاتورة بنجاح');
+}
+        function printInvoice() {
+            if (document.getElementById('previewInvoiceId').textContent === "INV-001") {
+                showNotification('يرجى إنشاء الفاتورة أولاً', 'error');
+                return;
+            }
+            window.print();
+        }
+
+        async function saveAsPDF() {
+            if (document.getElementById('previewInvoiceId').textContent === "INV-001") {
+                showNotification('يرجى إنشاء الفاتورة أولاً', 'error');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            showNotification('جاري الحفظ...');
+            const canvas = await html2canvas(document.getElementById('invoicePreview'), { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            doc.addImage(imgData, 'PNG', 10, 10, 190, 0);
+            doc.save(`فاتورة_${document.getElementById('previewClientName').textContent}.pdf`);
+        }
+    </script>
+</body>
+</html>
